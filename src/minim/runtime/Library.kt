@@ -1,5 +1,6 @@
 package minim.runtime
 
+import minim.util.toBoolean
 import minim.util.toFloat
 import kotlin.math.*
 
@@ -7,14 +8,17 @@ import kotlin.math.*
  * A mapping of every available system function.
  */
 object Library : MutableMap<String, Library.Function> by mutableMapOf() {
+    private lateinit var window: Window
+    
     init {
         addGeneral()
         addMath()
         addText()
+        addGFX()
     }
     
     /**
-     * Adds all of the general functions to the library map.
+     * Adds all the general functions to the library map.
      */
     private fun addGeneral() {
         this["time"] = Function { _, _ -> floatArrayOf(System.currentTimeMillis() / 1000F) }
@@ -29,7 +33,7 @@ object Library : MutableMap<String, Library.Function> by mutableMapOf() {
     }
     
     /**
-     * Adds all of the math functions to the library map.
+     * Adds all the math functions to the library map.
      */
     private fun addMath() {
         this["abs"] = Function(1) { _, args ->
@@ -268,7 +272,7 @@ object Library : MutableMap<String, Library.Function> by mutableMapOf() {
     }
     
     /**
-     * Adds all of the text functions to the library map.
+     * Adds all the text functions to the library map.
      */
     private fun addText() {
         this["isalpha"] = Function(1) { _, args ->
@@ -321,6 +325,224 @@ object Library : MutableMap<String, Library.Function> by mutableMapOf() {
     }
     
     /**
+     * Adds all the graphics functions to the library map.
+     */
+    private fun addGFX() {
+        this["gfxmake"] = Function(3) { runtime, args ->
+            val (width, height, titlePos) = args
+            
+            val title = runtime.memory.peek()!!.scanString(titlePos.toInt())
+            
+            window = Window(width.toInt(), height.toInt(), title)
+            
+            floatArrayOf()
+        }
+        
+        this["gfxopen"] = Function { _, _ ->
+            window.open()
+            
+            floatArrayOf()
+        }
+        
+        this["gfxclose"] = Function { _, _ ->
+            window.close()
+            
+            floatArrayOf()
+        }
+        
+        this["gfxisopen"] = Function { _, _ -> floatArrayOf(window.isOpen.toFloat()) }
+        
+        this["gfxflip"] = Function { _, _ ->
+            window.flip()
+            
+            floatArrayOf()
+        }
+        
+        this["gfxgetcolor"] = Function { _, _ ->
+            val color = window.getColor()
+            
+            floatArrayOf(
+                color.red.toFloat(),
+                color.green.toFloat(),
+                color.blue.toFloat(),
+                color.alpha.toFloat()
+            )
+        }
+        
+        this["gfxsetcolor"] = Function(4) { _, args ->
+            val (red, green, blue, alpha) = args
+            
+            window.setColor(red.toInt(), green.toInt(), blue.toInt(), alpha.toInt())
+            
+            floatArrayOf()
+        }
+    
+        this["gfxgetfont"] = Function { _, _ ->
+            val font = window.getFont()
+        
+            floatArrayOf(
+                font.size.toFloat(),
+                font.style.toFloat(),
+                *font.name.toMArray().map { it.value.toFloat() }.toFloatArray()
+            )
+        }
+    
+        this["gfxsetfont"] = Function(3) { runtime, args ->
+            val (size, style, namePos) = args
+        
+            window.setFont(runtime.memory.peek()!!.scanString(namePos.toInt()), style.toInt(), size.toInt())
+        
+            floatArrayOf()
+        }
+        
+        this["gfxtranslate"] = Function(2) {_,args->
+            val (x, y) = args
+            
+            window.translate(x.toDouble(), y.toDouble())
+    
+            floatArrayOf()
+        }
+    
+        this["gfxrotate"] = Function(1) {_,args->
+            val (theta) = args
+        
+            window.rotate(theta.toDouble())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxrotatefrom"] = Function(3) {_,args->
+            val (x, y, theta) = args
+        
+            window.rotate(theta.toDouble(),x.toDouble(), y.toDouble())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxscale"] = Function(2) {_,args->
+            val (x, y) = args
+        
+            window.scale(x.toDouble(), y.toDouble())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxshear"] = Function(2) {_,args->
+            val (x, y) = args
+        
+            window.shear(x.toDouble(), y.toDouble())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxpush"] = Function { _, _ ->
+            window.pushMatrix()
+        
+            floatArrayOf()
+        }
+    
+        this["gfxpop"] = Function { _, _ ->
+            window.popMatrix()
+        
+            floatArrayOf()
+        }
+    
+        this["gfxclear"] = Function { _, _ ->
+            window.clear()
+        
+            floatArrayOf()
+        }
+    
+        this["gfxdrawline"] = Function(4) { _, args ->
+            val (xa, ya, xb, yb) = args
+        
+            window.drawLine(xa.toInt(), ya.toInt(), xb.toInt(), yb.toInt())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxdrawrect"] = Function(4) { _, args ->
+            val (x, y, width, height) = args
+        
+            window.drawRect(x.toInt(), y.toInt(), width.toInt(), height.toInt())
+        
+            floatArrayOf()
+        }
+        
+        this["gfxfillrect"] = Function(4) { _, args ->
+            val (x, y, width, height) = args
+            
+            window.fillRect(x.toInt(), y.toInt(), width.toInt(), height.toInt())
+            
+            floatArrayOf()
+        }
+    
+        this["gfxdrawoval"] = Function(4) { _, args ->
+            val (x, y, width, height) = args
+        
+            window.drawOval(x.toInt(), y.toInt(), width.toInt(), height.toInt())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxfilloval"] = Function(4) { _, args ->
+            val (x, y, width, height) = args
+        
+            window.fillOval(x.toInt(), y.toInt(), width.toInt(), height.toInt())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxdrawroundrect"] = Function(6) { _, args ->
+            val (x, y, width, height, arcWidth, arcHeight) = args
+        
+            window.drawRoundRect(x.toInt(), y.toInt(), width.toInt(), height.toInt(), arcWidth.toInt(), arcHeight.toInt())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxfillroundrect"] = Function(6) { _, args ->
+            val (x, y, width, height, arcWidth, arcHeight) = args
+    
+            window.fillRoundRect(x.toInt(), y.toInt(), width.toInt(), height.toInt(), arcWidth.toInt(), arcHeight.toInt())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxdraw3drect"] = Function(5) { _, args ->
+            val (x, y, width, height, raised) = args
+        
+            window.draw3DRect(x.toInt(), y.toInt(), width.toInt(), height.toInt(), raised.toBoolean())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxfill3drect"] = Function(5) { _, args ->
+            val (x, y, width, height, raised) = args
+        
+            window.fill3DRect(x.toInt(), y.toInt(), width.toInt(), height.toInt(), raised.toBoolean())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxdrawarc"] = Function(6) { _, args ->
+            val (x, y, width, height, startAngle, arcAngle) = args
+        
+            window.drawArc(x.toInt(), y.toInt(), width.toInt(), height.toInt(), startAngle.toInt(), arcAngle.toInt())
+        
+            floatArrayOf()
+        }
+    
+        this["gfxfillarc"] = Function(6) { _, args ->
+            val (x, y, width, height, startAngle, arcAngle) = args
+        
+            window.fillArc(x.toInt(), y.toInt(), width.toInt(), height.toInt(), startAngle.toInt(), arcAngle.toInt())
+        
+            floatArrayOf()
+        }
+    }
+    
+    /**
      * A representation of a single system function.
      *
      * @param arity the amount of parameters the function has
@@ -337,3 +559,5 @@ object Library : MutableMap<String, Library.Function> by mutableMapOf() {
             method(runtime, args)
     }
 }
+
+private operator fun FloatArray.component6() = get(5)

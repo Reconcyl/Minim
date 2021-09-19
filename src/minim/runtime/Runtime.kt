@@ -33,7 +33,7 @@ class Runtime(private val config: Config, private var stmts: List<Stmt>) : Expr.
     /**
      * A stack of memory scopes.
      */
-    private val memory = Stack<MArray>()
+    val memory = Stack<MArray>()
     
     /**
      * A mapping of all encountered or looked-up goto labels, mapping the label id to the position of the label within the [list of statements][stmts].
